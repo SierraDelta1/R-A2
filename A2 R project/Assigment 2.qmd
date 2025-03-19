@@ -1,0 +1,68 @@
+---
+title: "MS5130 Assignment 2 - Data Analysis"
+author: "Your Name"
+date: "`r Sys.Date()`"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introduction
+
+This document presents an enhanced analysis of urban and rural populations, GDP per capita, and population density using R and Quarto. The analysis integrates multiple datasets, applies both descriptive and inferential analysis, and includes interactive and geographical visualizations.
+
+## Data Import & Merging
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(leaflet)
+library(readr)
+library(DiagrammeR)
+```
+
+```{r import}
+# Read the datasets
+urban_rural <- read_csv("/Users/saikattiyashas/Library/CloudStorage/OneDrive-NationalUniversityofIreland,Galway/Subjects Sem 2/Applied Analytics/A2/A2Git/urban-and-rural-population_updated.csv")
+gdp_data <- read_csv("/Users/saikattiyashas/Library/CloudStorage/OneDrive-NationalUniversityofIreland,Galway/Subjects Sem 2/Applied Analytics/A2/A2Git/GDP_per_capita_data_updated.csv")
+pop_density <- read_csv("/Users/saikattiyashas/Library/CloudStorage/OneDrive-NationalUniversityofIreland,Galway/Subjects Sem 2/Applied Analytics/A2/A2Git/Population_Density.csv")
+
+# Convert GDP data from wide to long format
+gdp_long <- gdp_data %>%
+  pivot_longer(cols = starts_with("19"):starts_with("20"), 
+               names_to = "Year", 
+               values_to = "GDP_per_capita") %>%
+  mutate(Year = as.integer(Year)) %>%
+  select(Country_Name, Country_Code, Year, GDP_per_capita)
+
+# Convert Population Density data from wide to long format
+pop_density_long <- pop_density %>%
+  pivot_longer(cols = starts_with("19"):starts_with("20"), 
+               names_to = "Year", 
+               values_to = "Population_Density") %>%
+  mutate(Year = as.integer(Year)) %>%
+  select(Country_Name, Country_Code, Year, Population_Density)
+
+# Merge datasets
+merged_data <- urban_rural %>%
+  left_join(gdp_long, by = c("Country_Code", "Year")) %>%
+  left_join(pop_density_long, by = c("Country_Code", "Year")) %>%
+  select(Country_Name = Country_Name.x, Country_Code, Year, 
+         Urban_population, Rural_population, GDP_per_capita, Population_Density)
+
+# View the first few rows
+head(merged_data)
+```
+
+## Data Flow Diagram (SE1)
+
+```{mermaid}
+flowchart TD;
+    A[Urban & Rural Population] -->|Merge| C[Merged Dataset];
+    B[GDP per Capita] -->|Merge| C;
+    D[Population Density] -->|Merge| C;
+```
